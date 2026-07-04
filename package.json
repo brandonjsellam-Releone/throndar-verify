@@ -1,0 +1,28 @@
+{
+  "name": "throndar-verify",
+  "version": "1.0.0",
+  "description": "Verify a Throndar proof bundle — answer, transcript, autopilot run, signed export, signed tree head, or consistency proof — entirely offline, against pinned public keys.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "throndar-verify": "dist/throndar-verify.mjs"
+  },
+  "files": [
+    "dist/throndar-verify.mjs",
+    "action.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "throndar",
+    "post-quantum",
+    "ml-dsa",
+    "verification",
+    "provenance",
+    "transparency-log",
+    "ci"
+  ]
+}

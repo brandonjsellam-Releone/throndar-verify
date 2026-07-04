@@ -1,0 +1,31 @@
+# Throndar proof-verification GitHub Action.
+#
+# Fails the workflow if a Throndar proof bundle does not verify — the "don't trust
+# us, verify it" doctrine as a CI gate. Verification is entirely OFFLINE (no network):
+# the pre-built dist/throndar-verify.mjs bundle carries the isomorphic verifiers and
+# Throndar's pinned published keys.
+#
+# Usage in a workflow:
+#   - uses: ./tools/verify-cli          # (or your published <owner>/throndar-verify@v1)
+#     with:
+#       bundle: path/to/answer.throndar-proof.json
+#       require-origin: "true"          # reject anything not signed by a pinned Throndar key
+name: "Verify Throndar proof"
+description: "Verify a Throndar answer/transcript/autopilot proof bundle offline; fail the build if it doesn't verify."
+inputs:
+  bundle:
+    description: "Path to a proof-bundle JSON file — OR a directory, to verify every *.json inside it (fails if any fails)."
+    required: true
+  require-origin:
+    description: "If 'true', fail unless the signer is a pinned Throndar key (not just internally-valid signatures)."
+    required: false
+    default: "true"
+runs:
+  using: "composite"
+  steps:
+    - name: Verify proof bundle
+      shell: bash
+      run: |
+        args=()
+        if [ "${{ inputs.require-origin }}" = "true" ]; then args+=(--require-origin); fi
+        node "${{ github.action_path }}/dist/throndar-verify.mjs" "${args[@]}" "${{ inputs.bundle }}"
