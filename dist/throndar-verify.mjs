@@ -4578,7 +4578,7 @@ function verifyText(source, text, requireOrigin) {
     return { source, read: false, pass: false, error: "not valid JSON" };
   }
   const verdict = verifyBundleObject(obj);
-  return { source, read: !verdict.error, pass: passes(verdict, requireOrigin), verdict };
+  return { source, read: !verdict.error, pass: passes(verdict, requireOrigin), verdict, error: verdict.error };
 }
 function expand(arg) {
   let st;

@@ -1,6 +1,6 @@
 {
   "name": "throndar-verify",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Verify a Throndar proof bundle — answer, transcript, autopilot run, signed export, signed tree head, or consistency proof — entirely offline, against pinned public keys.",
   "license": "MIT",
   "type": "module",
