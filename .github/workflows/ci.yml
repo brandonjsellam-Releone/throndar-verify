@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "23 6 * * 1" # weekly: catch Node-runtime drift on an otherwise dormant repo
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 24]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Usage prints (exit 2 is the documented usage exit)
+        run: node dist/throndar-verify.mjs --help | grep -q USAGE
+      - name: Malformed bundle must FAIL verification
+        run: |
+          echo '{}' > bad.json
+          if node dist/throndar-verify.mjs bad.json; then
+            echo "::error::malformed bundle unexpectedly passed"; exit 1
+          fi
