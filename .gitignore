@@ -1,0 +1,24 @@
+# This repo had no .gitignore at all.
+#
+# NOTE: dist/ is deliberately NOT ignored — the committed dist/throndar-verify.mjs
+# IS the shipped artifact (package.json "bin", and the GitHub Action entrypoint).
+
+# Secrets. The verifier is offline and reads no env vars today, so this is
+# prophylactic — but this repo is consumed as a GitHub Action by other people's CI,
+# so a credential committed here would be maximally exposed.
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+npm-debug.log*
+*.tgz
+
+# Test/scratch bundles people drop in while verifying proofs locally
+bad.json
+*.local.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
