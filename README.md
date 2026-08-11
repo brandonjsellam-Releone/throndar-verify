@@ -10,9 +10,16 @@ keys baked in.
 
 ## What a pass means
 
-- **Integrity + signature** — the post-quantum signatures embedded in the bundle
-  (ML-DSA-87, plus a Falcon-1024 / FN-DSA co-signature where present — FN-DSA's FIPS 206 is
-  still a draft) verify against the embedded keys, and the content hashes are unaltered.
+- **Integrity + signature** — the **ML-DSA-87** signature embedded in the bundle verifies
+  against the embedded key, and the content hashes are unaltered. **ML-DSA-87 alone decides
+  the verdict.**
+- **Falcon-1024 / FN-DSA co-signature — reported, NOT gating.** Where a bundle carries one it
+  is verified and its result is surfaced as `bridge.secondaryOk`, but it does **not** affect
+  the pass/fail outcome: a bundle whose co-signature is present and **invalid** still PASSES
+  if ML-DSA-87 is good. This is deliberate while FN-DSA's FIPS 206 remains a draft and the
+  co-signature is optional — gating on an unstandardised signature would produce false
+  failures. But it means **you must not read a pass as "the Falcon co-signature is valid."**
+  If you need that, check `bridge.secondaryOk` yourself in the JSON verdict.
 - **Origin** (`--require-origin`) — the verifying keys are keys **Throndar publishes**,
   matched by key *material*, never a claimed label. A self-signed or non-Throndar bundle
   passes integrity but fails origin.
