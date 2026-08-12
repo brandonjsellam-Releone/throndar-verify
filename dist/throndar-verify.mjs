@@ -4083,11 +4083,20 @@ function verifyProofBundle(b) {
     const primaryOk = Boolean(
       pk && a.sig_primary && verifyBridgePrimary(b.answer, a.sig_primary, pk.public_key_b64)
     );
+    const secondaryPresent = Boolean(a.sig_secondary);
     const secondaryOk = Boolean(
       sk && a.sig_secondary && verifyBridgeSecondary(b.answer, a.sig_secondary, sk.public_key_b64)
     );
-    verdict.bridge = { present: true, primaryOk, secondaryOk, keyId: a.key_id_primary ?? void 0 };
-    allOk = allOk && primaryOk;
+    const secondaryUnverifiable = secondaryPresent && !sk;
+    verdict.bridge = {
+      present: true,
+      primaryOk,
+      secondaryPresent,
+      secondaryOk,
+      secondaryUnverifiable,
+      keyId: a.key_id_primary ?? void 0
+    };
+    allOk = allOk && primaryOk && (!secondaryPresent || secondaryOk);
   }
   verdict.overallOk = verdict.checks > 0 && allOk;
   return verdict;
@@ -4603,7 +4612,13 @@ function line(r) {
   if (!r.read) return `\u2717 ${r.source}: ${r.error}`;
   const v = r.verdict;
   const origin = v.signerRecognized ? "Throndar-origin" : "integrity-only";
-  return `${r.pass ? "\u2713" : "\u2717"} ${r.source}: ${v.ok ? "signatures verified" : "signatures FAILED"} (${v.kind}, ${origin}) \u2192 ${r.pass ? "PASS" : "FAIL"}`;
+  const bridge = v.verdict?.bridge;
+  let cosig = "";
+  if (bridge?.present && bridge.secondaryPresent) {
+    if (bridge.secondaryUnverifiable) cosig = ", co-signature UNVERIFIABLE (no secondary key in bundle)";
+    else cosig = bridge.secondaryOk ? ", dual-signed" : ", co-signature FAILED";
+  }
+  return `${r.pass ? "\u2713" : "\u2717"} ${r.source}: ${v.ok ? "signatures verified" : "signatures FAILED"} (${v.kind}, ${origin}${cosig}) \u2192 ${r.pass ? "PASS" : "FAIL"}`;
 }
 function main(argv) {
   let requireOrigin = false;
@@ -4644,6 +4659,7 @@ function main(argv) {
         ok: r.verdict?.ok ?? false,
         signerRecognized: r.verdict?.signerRecognized ?? false,
         kind: r.verdict?.kind || null,
+        bridge: r.verdict?.verdict?.bridge ?? null,
         error: r.error ?? r.verdict?.error ?? null
       }))
     };

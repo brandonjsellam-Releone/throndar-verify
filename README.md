@@ -13,6 +13,12 @@ keys baked in.
 - **Integrity + signature** — the post-quantum signatures embedded in the bundle
   (ML-DSA-87, plus a Falcon-1024 / FN-DSA co-signature where present — FN-DSA's FIPS 206 is
   still a draft) verify against the embedded keys, and the content hashes are unaltered.
+  The co-signature is **optional but enforced**: a bundle that carries no
+  `sig_secondary` still passes on the primary alone, but if a co-signature *is*
+  present it must verify, or the bundle fails. A claimed co-signature with no
+  secondary key to check it against also fails, rather than being skipped.
+  The outcome is reported as `bridge.secondaryOk` / `bridge.secondaryUnverifiable`
+  in `--json`.
 - **Origin** (`--require-origin`) — the verifying keys are keys **Throndar publishes**,
   matched by key *material*, never a claimed label. A self-signed or non-Throndar bundle
   passes integrity but fails origin.
