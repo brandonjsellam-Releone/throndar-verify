@@ -33,3 +33,60 @@ jobs:
         run: |
           node test/make-fixtures.mjs
           node test/cosignature.test.mjs
+
+      # Everything above this line is satisfied WITHOUT running any cryptography. `{}` is
+      # rejected by the kind dispatcher before ML-DSA, SLH-DSA or Merkle code executes, and the
+      # repo carried no proof-bundle fixture at all, so `passes()` could be replaced wholesale
+      # with `return true` and CI stayed green. --require-origin, the input action.yml documents
+      # as the thing that "rejects anything not signed by a pinned Throndar key", appeared
+      # nowhere. The steps below are the ones that reach the signature verifier.
+      - name: A real proof bundle must VERIFY, with origin pinning
+        run: node dist/throndar-verify.mjs --require-origin fixtures/demo-proof.json
+
+      - name: Tampered bundles must FAIL (signature, payload, and origin)
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Three independent mutations, each targeting a different control. A verifier that
+          # short-circuits any one of them fails this step. Python is used rather than inline
+          # JS because authoring JS is forbidden by the governing constitution (CLAUDE.md S0).
+          python3 - <<'PY'
+          import copy, json, pathlib
+
+          src = json.loads(pathlib.Path("fixtures/demo-proof.json").read_text(encoding="utf-8"))
+
+          def flip_hex(s, i=0):
+              """Change one hex nibble, preserving length and alphabet."""
+              c = "0" if s[i] != "0" else "1"
+              return s[:i] + c + s[i + 1:]
+
+          cases = {}
+
+          # 1. Signature forgery: one nibble of the ML-DSA-87 signature.
+          bad = copy.deepcopy(src)
+          bad["receipt"]["sig"] = flip_hex(bad["receipt"]["sig"])
+          cases["tampered-sig.json"] = bad
+
+          # 2. Payload substitution: the answer no longer hashes to the signed digest.
+          bad = copy.deepcopy(src)
+          bad["answer"] = bad["answer"] + " (substituted)"
+          cases["tampered-answer.json"] = bad
+
+          # 3. Origin substitution: a different public key, which is what --require-origin
+          #    exists to reject. Internally-consistent-but-not-Throndar is the interesting case.
+          bad = copy.deepcopy(src)
+          bad["receiptKey"]["public_key_hex"] = flip_hex(bad["receiptKey"]["public_key_hex"])
+          cases["tampered-origin.json"] = bad
+
+          for name, obj in cases.items():
+              pathlib.Path(name).write_text(json.dumps(obj), encoding="utf-8")
+              print(f"wrote {name}")
+          PY
+
+          for f in tampered-sig.json tampered-answer.json tampered-origin.json; do
+            if node dist/throndar-verify.mjs --require-origin "$f"; then
+              echo "::error::$f verified but must not have - a control is not being enforced"
+              exit 1
+            fi
+            echo "  rejected as required: $f"
+          done

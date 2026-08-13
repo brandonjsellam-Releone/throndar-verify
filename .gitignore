@@ -25,3 +25,6 @@ Thumbs.db
 
 # generated test fixtures
 test/fixtures/
+
+# CI scratch: tampered copies minted at runtime by the negative-verification step
+tampered-*.json
