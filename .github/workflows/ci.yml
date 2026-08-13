@@ -72,8 +72,11 @@ jobs:
           bad["answer"] = bad["answer"] + " (substituted)"
           cases["tampered-answer.json"] = bad
 
-          # 3. Origin substitution: a different public key, which is what --require-origin
-          #    exists to reject. Internally-consistent-but-not-Throndar is the interesting case.
+          # 3. Origin substitution. NOTE: flipping a nibble of the public key also breaks the
+          #    SIGNATURE, so this bundle is rejected on signature grounds whether or not
+          #    --require-origin is passed - it does NOT isolate the origin gate. It is kept because
+          #    a corrupted key field must still fail closed, but the step below is what actually
+          #    makes `signerRecognized` load-bearing.
           bad = copy.deepcopy(src)
           bad["receiptKey"]["public_key_hex"] = flip_hex(bad["receiptKey"]["public_key_hex"])
           cases["tampered-origin.json"] = bad
@@ -90,3 +93,38 @@ jobs:
             fi
             echo "  rejected as required: $f"
           done
+
+      # The three mutations above all break the SIGNATURE, so `v.ok` is already false and each is
+      # rejected before --require-origin can matter. Measured, not assumed: without the flag all
+      # three still exit 1 with the same "signatures FAILED" message. Every origin predicate opens
+      # with `if (!v.overallOk) return false;`, so signerRecognized IMPLIES ok by construction -
+      # meaning the conjunct in `passes(v, requireOrigin)` can only bite on a bundle that is
+      # ok=true AND signerRecognized=false. No input in this job was that bundle, so gutting the
+      # gate to `return v.ok;` left the entire smoke job green.
+      #
+      # test/fixtures/dual-signed.json IS that bundle: valid signatures, signer not pinned.
+      # make-fixtures.mjs generates it (it is gitignored, hence regenerated here rather than read
+      # from the tree).
+      - name: The origin gate must be the thing that rejects an unpinned signer
+        shell: bash
+        run: |
+          set -euo pipefail
+          node test/make-fixtures.mjs
+          f=test/fixtures/dual-signed.json
+
+          # WITHOUT the flag this must PASS. If it does not, the fixture is not the ok-but-unpinned
+          # case and the assertion below would prove nothing - it would just be mutation #1 again.
+          if ! node dist/throndar-verify.mjs "$f"; then
+            echo "::error::$f must verify WITHOUT --require-origin; the check below is only"
+            echo "::error::meaningful on a bundle whose signatures are valid"
+            exit 1
+          fi
+
+          # Same bytes, same signatures, only the flag differs. The sole remaining reason to reject
+          # is that the signer is not a pinned Throndar key - which is what action.yml documents
+          # this flag as doing.
+          if node dist/throndar-verify.mjs --require-origin "$f"; then
+            echo "::error::--require-origin ACCEPTED a bundle signed by an unpinned key"
+            exit 1
+          fi
+          echo "  origin gate is load-bearing: same bundle passes without the flag, fails with it"
