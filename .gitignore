@@ -22,3 +22,6 @@ bad.json
 # OS / editor
 .DS_Store
 Thumbs.db
+
+# generated test fixtures
+test/fixtures/

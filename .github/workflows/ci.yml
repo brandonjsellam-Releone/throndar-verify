@@ -29,3 +29,7 @@ jobs:
           if node dist/throndar-verify.mjs bad.json; then
             echo "::error::malformed bundle unexpectedly passed"; exit 1
           fi
+      - name: Co-signature gating regression test
+        run: |
+          node test/make-fixtures.mjs
+          node test/cosignature.test.mjs
