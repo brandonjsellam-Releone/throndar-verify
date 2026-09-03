@@ -25,7 +25,26 @@ runs:
   steps:
     - name: Verify proof bundle
       shell: bash
+      # The inputs reach the script as ENVIRONMENT VALUES, never as script text.
+      #
+      # This step used to write `${{ inputs.bundle }}` and `${{ inputs.require-origin }}`
+      # directly inside `run:`. The Actions runner expands those expressions into the
+      # script TEXT before bash parses it, so a consumer who feeds this action anything
+      # PR-derived — a per-branch bundle path, an entry from a changed-files list —
+      # was handing every external PR author a shell on their runner, with that job's
+      # GITHUB_TOKEN and any secret the step could see. The author of the script is
+      # the one who can close that, which is why GitHub's hardening guide treats an
+      # `${{ inputs.* }}` inside `run:` as the action's defect, not the consumer's.
+      #
+      # An env value is data to bash. The same payload in "$BUNDLE" is one literal
+      # argument, which the verifier reports as an unreadable path and exits 1.
+      # `github.action_path` stays inline: it is the runner's own checkout location
+      # of this action, which no workflow input or event payload can influence.
+      # test/verify-cli-action-injection.test.ts gates this file.
+      env:
+        BUNDLE: "${{ inputs.bundle }}"
+        REQUIRE_ORIGIN: "${{ inputs.require-origin }}"
       run: |
         args=()
-        if [ "${{ inputs.require-origin }}" = "true" ]; then args+=(--require-origin); fi
-        node "${{ github.action_path }}/dist/throndar-verify.mjs" "${args[@]}" "${{ inputs.bundle }}"
+        if [ "$REQUIRE_ORIGIN" = "true" ]; then args+=(--require-origin); fi
+        node "${{ github.action_path }}/dist/throndar-verify.mjs" "${args[@]}" "$BUNDLE"
