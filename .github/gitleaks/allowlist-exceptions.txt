@@ -1,0 +1,28 @@
+# Reviewed gitleaks allowlist exceptions for this repository.
+#
+# The secret-scan workflow builds its gitleaks configuration itself: the pinned, vendored
+# ruleset in this directory, plus whatever rules .gitleaks.toml ADDS, re-emitted field by
+# field. A repository allowlist is never carried into that configuration, so it cannot
+# subtract anything from the scan -- read that twice, because it is the opposite of what
+# a file called "exceptions" usually means:
+#
+#   Listing a digest here does NOT make the scan ignore anything. It only says that this
+#   allowlist has been read and may exist in .gitleaks.toml -- for gitleaks run locally,
+#   or by an editor plugin -- without failing CI. Verified: with the digest below's
+#   allowlist approved, the config gate passed and the scan still reported the planted
+#   credential and failed the job.
+#
+# Without an entry here, any allowlist in .gitleaks.toml fails the job outright, because
+# an unreviewed allowlist in the repository is how three of the four ways to make this
+# scan lie began.
+#
+# Format: one lowercase sha256 digest per line, optionally followed by "# why".
+# The digest is over the canonical JSON of the allowlist table, sorted by key, with no
+# whitespace -- the workflow prints the digest of any allowlist it rejects, so adding an
+# exception is: read the allowlist in the diff, decide it may exist, paste the digest here
+# IN THE SAME REVIEW, and say why on the line.
+#
+# An allowlist attached to a rule ([rules.allowlist]) is rejected whatever is listed here:
+# the gate cannot re-emit that field, so it refuses the rule rather than guessing.
+#
+# There are none today.
