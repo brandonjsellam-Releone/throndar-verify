@@ -1,0 +1,15 @@
+[package]
+name = "tv-cli"
+version = "0.0.0"
+description = "Bounded input transport; no verifier executable yet"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+tv-core = { path = "../tv-core", version = "=0.0.0" }
+thiserror.workspace = true
+
+[lints]
+workspace = true

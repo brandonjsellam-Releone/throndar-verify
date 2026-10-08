@@ -1,5 +1,11 @@
 # throndar-verify
 
+> **Rust port status:** the new Rust workspace currently implements only bounded
+> input reading and strict, untrusted JSON parsing. It does not verify signatures
+> or establish origin, and is not a replacement for the CLI described below.
+> See [the input boundary specification](docs/rust-input-boundary.md) for its
+> implemented scope, validation evidence, and remaining work.
+
 Verify a **Throndar** proof **entirely offline** — a council answer, a shared transcript,
 an Autopilot run evidence pack, a signed data export, a transparency-log signed tree head,
 or a consistency (append-only) proof. No network, no `npm install`: `dist/throndar-verify.mjs`
