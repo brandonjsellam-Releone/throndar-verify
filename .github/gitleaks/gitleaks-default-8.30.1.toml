@@ -13,17 +13,31 @@
 # failed the job.  The only variable was the filename.
 #
 # What was changed, and nothing else:
-#   the global [allowlist] `paths` list was reduced to the entries below.  Every rule,
+#   the global [allowlist] `paths` list was emptied (see below).  Every rule,
 #   every allowlist regex and every stopword is upstream's, unmodified.
 #
-# Entries in force, with the reason (the first were upstream's; any others are this
-# repository's own, added here rather than inherited):
-#   (?:^|/)\.git$
-#       upstream's own entry, kept: the object database is not source. It is belt and braces rather than the thing doing the work -- measured, gitleaks' dir walker already skips .git, and a PEM planted in .git/description is not reported with or without this line
-#   (?:^|/)\.github/gitleaks/gitleaks-default-8\.30\.1\.toml$
-#       this file: 3200 lines of detection patterns match each other. Upstream allowlists 'gitleaks\.toml' for the same reason; this is the same exception narrowed to one exact path. Without it the scan reports aws-amazon-bedrock-api-key-short-lived at line 240 of this file and the job is red on an honest tree. The file is SHA-256 pinned in the workflow, so hiding a credential in it is a reviewed edit to two files, not a silent one
+# Entries in force: NONE.  The global path list is empty, and that is deliberate.
 #
-# Entries removed: every other path pattern upstream shipped -- the image, font,
+# Removed 2026-10-08, both reproduced as holes with a credential reachable and the job green:
+#   (?:^|/)\.git$
+#       upstream's own entry.  gitleaks' dir walker skips .git directories without it (measured:
+#       a PEM planted in .git/description is not reported either way), so in path mode it did
+#       nothing.  In git mode it did one thing: hide any blob at a path ending in "/.git".  The
+#       porcelain will not commit such a path, but plumbing (git mktree) will, and gitleaks then
+#       reported nothing for a credential at sub/.git; with the entry deleted it is found.
+#   (?:^|/)\.github/gitleaks/gitleaks-default-8\.30\.1\.toml$
+#       this repository's own, added 2026-09-18 for this file.  '(?:^|/)' matches at any
+#       directory boundary, so a credential committed to docs/.github/gitleaks/gitleaks-default-
+#       8.30.1.toml was excluded from every pass while the pin covered only the copy at the root
+#       -- and even anchored, the root path would have hidden a credential committed there and
+#       reverted before the tip, because the pin hashes the tip only.
+# The patterns in this file do match each other (an honest tree reports
+# aws-amazon-bedrock-api-key-short-lived on one of this file's own lines), so the workflow
+# accepts a finding in this file by VALUE instead: only at exactly this path, and only when the
+# bytes at this path in that commit hash to a digest the workflow lists as reviewed.  A path
+# exception can be reused by a second file; a digest cannot.
+#
+# Removed 2026-09-18: every other path pattern upstream shipped -- the image, font,
 # document/binary and archive extension globs, and the Go / Java / Python / Ruby /
 # JavaScript ecosystem directory globs, none of which this repository can justify.  If a
 # removal turns out to cause a false positive, the fix is to add the pattern back HERE,
@@ -57,8 +71,7 @@ minVersion = "v8.25.0"
 [allowlist]
 description = "global allow lists"
 paths = [
-    '''(?:^|/)\.git$''', # upstream's own entry, kept: the object database is not source. It is belt and braces rather than the thing doing the work -- measured, gitleaks' dir walker already skips .git, and a PEM planted in .git/description is not reported with or without this line
-    '''(?:^|/)\.github/gitleaks/gitleaks-default-8\.30\.1\.toml$''', # this file: 3200 lines of detection patterns match each other. Upstream allowlists 'gitleaks\.toml' for the same reason; this is the same exception narrowed to one exact path. Without it the scan reports aws-amazon-bedrock-api-key-short-lived at line 240 of this file and the job is red on an honest tree. The file is SHA-256 pinned in the workflow, so hiding a credential in it is a reviewed edit to two files, not a silent one
+    # none: see the header of this file
 ]
 regexes = [
     '''(?i)^true|false|null$''',
