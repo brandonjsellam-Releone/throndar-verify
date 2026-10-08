@@ -28,3 +28,8 @@ test/fixtures/
 
 # CI scratch: tampered copies minted at runtime by the negative-verification step
 tampered-*.json
+
+# Rust outputs are produced only in disposable Linux audit copies.
+/target/
+/mutants.out/
+/mutants.out.old/
