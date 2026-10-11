@@ -1,0 +1,2 @@
+700c2b240f7fd330c24b675fe429f73a5b676531fcc6300400b2b67f155ba12a  .ci-tools/cargo-audit-0.22.2.crate
+b9aff7a192df482d7e158f83a62da2460a2a91850692244d1f8986241615f991  tools/ci-audit-bootstrap/Cargo.lock

@@ -1,0 +1,14 @@
+[workspace]
+
+[package]
+name = "tv-mutants-bootstrap"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.97.1"
+publish = false
+
+[dependencies]
+# Development tooling only, isolated from the verifier dependency graph.
+# Pin the upstream Rust mutation runner before its dependencies are fetched.
+# The bootstrap crate is never built, linked into a product, or published.
+cargo-mutants = "=27.1.0"
