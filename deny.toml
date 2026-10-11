@@ -1,3 +1,6 @@
+[graph]
+all-features = true
+
 [advisories]
 version = 2
 ignore = []
@@ -10,6 +13,17 @@ confidence-threshold = 0.95
 [bans]
 multiple-versions = "deny"
 wildcards = "deny"
+deny = [
+    { name = "ring" },
+    { name = "aws-lc-rs" },
+    { name = "aws-lc-sys" },
+    { name = "openssl" },
+    { name = "openssl-sys" },
+    { name = "native-tls" },
+    { name = "boring" },
+    { name = "boring-sys" },
+    { name = "libsodium-sys" },
+]
 
 [sources]
 unknown-registry = "deny"

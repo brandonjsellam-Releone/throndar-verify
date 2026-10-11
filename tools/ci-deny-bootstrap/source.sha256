@@ -1,0 +1,2 @@
+e528dfcbe739af7ce37a77d3d6df1b29dd6887b1c701d888820c0f16b864f737  .ci-tools/cargo-deny-0.20.2.crate
+e89ba50442e08158e1bcde1e75144a038f6ee6b5bde6439a02e0e7a6bbb702d9  tools/ci-deny-bootstrap/Cargo.lock
