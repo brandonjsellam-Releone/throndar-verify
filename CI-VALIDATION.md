@@ -9,7 +9,37 @@ schedule, and manual dispatch. It has read-only repository permissions and
 checkout credential persistence disabled. There are no path filters, advisory
 ignores, continue-on-error steps, or optional Rust test jobs. Repository branch
 protection must separately require its test, quality and dependency checks.
-That remote setting was not modified or verified in this change.
+That remote setting is separate from workflow execution; see the hosted follow-up.
+
+## Hosted follow-up and workspace correction
+
+Published commit `237aa095f3129a56d68bf9de5020bb193561c197` ran in GitHub
+[Rust run 38131387823](https://github.com/brandonjsellam-Releone/throndar-verify/actions/runs/38131387823).
+All four parser test jobs and formatting/lint passed. Dependency policy failed
+closed before its checks: extracting cargo-audit below the product workspace
+made Cargo reject the tool as an unlisted workspace member. The earlier local
+build used a sibling source directory and did not exercise this ancestor lookup.
+The separate legacy run `38131387774` passed both Node smoke jobs.
+
+The correction extracts both unchanged tool archives into `runner.temp`, outside
+the product workspace, and keeps the reviewed locks, hashes, install/target
+locations and mandatory policy commands unchanged. No workspace membership or
+vendor source was edited. The original failure was reproduced in the old Linux
+layout. A fresh isolated snapshot `/home/audit/src/tv-ci-external-source-20261011`
+completed both full corrected installations (audit 4m07s,
+deny 4m01s). The new binaries passed both tool-lock audits, the product audit and
+all four deny groups from the product root, with current advisory refresh.
+Their binary and admitted-lock hashes matched the original admission receipts.
+
+Raw fetch, setup, full build and policy receipts are
+`rust-ci-external-source-*-20261011.log` in the evidence directory below. Local
+builds used the equivalent external temporary directory and ran independently
+in parallel; hosted CI retains sequential audit admission before the deny build.
+The corrected workflow still requires a successful hosted run after publication.
+
+Read-only GitHub checks on 2026-10-11 returned an empty ruleset list and explicit
+`Branch not protected` for main. No repository policy was changed. A workflow
+being mandatory in its own execution does not make it a required merge check.
 
 ## Executed locally in isolated Linux
 
@@ -38,7 +68,8 @@ change; its existing workflow remains unchanged and must remain required.
 The original source snapshot predates a correction placing cargo-deny's global
 `--config` option before `check`, and the admission Markdown receipts. The final
 command form was subsequently executed successfully. No product source changed
-after these tests. No claim is made that GitHub has executed the new workflow.
+after these tests. The hosted follow-up above supersedes the initial remote-run
+status; it does not turn this original local record into hosted evidence.
 
 ## Reproduction
 

@@ -61,10 +61,11 @@ jobs:
         run: curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 https://static.crates.io/crates/cargo-audit/cargo-audit-0.22.2.crate --output .ci-tools/cargo-audit-0.22.2.crate
       - name: Check audit source and admitted dependency lock
         run: sha256sum --check tools/ci-audit-bootstrap/source.sha256
-      - run: tar --extract --gzip --file .ci-tools/cargo-audit-0.22.2.crate --directory .ci-tools
-      - run: cp tools/ci-audit-bootstrap/Cargo.lock .ci-tools/cargo-audit-0.22.2/Cargo.lock
+      # Tool source must be outside any product Cargo workspace ancestor.
+      - run: tar --extract --gzip --file .ci-tools/cargo-audit-0.22.2.crate --directory "${{ runner.temp }}"
+      - run: cp tools/ci-audit-bootstrap/Cargo.lock "${{ runner.temp }}/cargo-audit-0.22.2/Cargo.lock"
       - name: Build audit with the reviewed resolution
-        run: cargo +1.97.1 install --path .ci-tools/cargo-audit-0.22.2 --locked --root .ci-tools/install --target-dir .ci-tools/audit-target
+        run: cargo +1.97.1 install --path "${{ runner.temp }}/cargo-audit-0.22.2" --locked --root .ci-tools/install --target-dir .ci-tools/audit-target
       - name: Audit tool resolution against current advisories
         run: .ci-tools/install/bin/cargo-audit audit --deny warnings --file tools/ci-audit-bootstrap/Cargo.lock
       - name: Audit deny tool resolution before building it
@@ -73,10 +74,10 @@ jobs:
         run: curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 https://static.crates.io/crates/cargo-deny/cargo-deny-0.20.2.crate --output .ci-tools/cargo-deny-0.20.2.crate
       - name: Check deny source and admitted dependency lock
         run: sha256sum --check tools/ci-deny-bootstrap/source.sha256
-      - run: tar --extract --gzip --file .ci-tools/cargo-deny-0.20.2.crate --directory .ci-tools
-      - run: cp tools/ci-deny-bootstrap/Cargo.lock .ci-tools/cargo-deny-0.20.2/Cargo.lock
+      - run: tar --extract --gzip --file .ci-tools/cargo-deny-0.20.2.crate --directory "${{ runner.temp }}"
+      - run: cp tools/ci-deny-bootstrap/Cargo.lock "${{ runner.temp }}/cargo-deny-0.20.2/Cargo.lock"
       - name: Build deny with the reviewed resolution
-        run: cargo +1.97.1 install --path .ci-tools/cargo-deny-0.20.2 --locked --root .ci-tools/install --target-dir .ci-tools/deny-target
+        run: cargo +1.97.1 install --path "${{ runner.temp }}/cargo-deny-0.20.2" --locked --root .ci-tools/install --target-dir .ci-tools/deny-target
       - name: Audit product dependency lock
         run: .ci-tools/install/bin/cargo-audit audit --deny warnings --file Cargo.lock
       - name: Enforce product licenses, sources, advisories and crypto bans

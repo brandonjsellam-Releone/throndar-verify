@@ -11,7 +11,8 @@ unchanged source copy received a refreshed lock using Cargo 1.97.1. The resultin
 199-dependency lock passed cargo-audit 0.22.2 with `--deny warnings` and no ignores
 against 1,296 advisories on 2026-10-11. The same database was refreshed that day.
 
-CI audits this lock before building the tool, hashes and extracts the archive,
+CI audits this lock before building the tool, hashes and extracts the archive
+into `runner.temp` outside any product Cargo workspace ancestor,
 copies this lock over the shipped one, and installs with exact Rust 1.97.1 and
 `--locked`. Installation succeeded using `--offline` in the isolated Linux VM.
 The installed binary passed the real product policies and rejected deliberately

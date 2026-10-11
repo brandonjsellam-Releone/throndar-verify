@@ -16,7 +16,8 @@ copy received a refreshed lock using Cargo 1.97.1. The resulting 381-dependency
 lock passed cargo-audit 0.22.2 with `--deny warnings`, no advisory ignores,
 against 1,296 advisories after a network refresh on 2026-10-11.
 
-CI downloads and hashes the source archive, extracts it, replaces only Cargo.lock
+CI downloads and hashes the source archive, extracts it into `runner.temp`
+outside any product Cargo workspace ancestor, replaces only Cargo.lock
 with this reviewed lock, and uses `cargo +1.97.1 install --path ... --locked`.
 It then audits both tool locks and the product lock against current advisories.
 There is no unchecked `cargo install --version` fallback or `cargo update` in CI.
