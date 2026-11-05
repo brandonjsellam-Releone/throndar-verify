@@ -11,8 +11,8 @@ keys baked in.
 ## What a pass means
 
 - **Integrity + signature** — the post-quantum signatures embedded in the bundle
-  (ML-DSA-87, plus a Falcon-1024 / FN-DSA co-signature where present — FN-DSA's FIPS 206 is
-  still a draft) verify against the embedded keys, and the content hashes are unaltered.
+  (ML-DSA-87, plus a Falcon-1024 / FN-DSA co-signature where present — FIPS 206 (FN-DSA) has
+  not been published as a final standard) verify against the embedded keys, and the content hashes are unaltered.
   The co-signature is **optional but enforced**: a bundle that carries no
   `sig_secondary` still passes on the primary alone, but if a co-signature *is*
   present it must verify, or the bundle fails. A claimed co-signature with no
@@ -25,6 +25,10 @@ keys baked in.
 
 It does **not** attest the answer's *content* is correct — only that this exact artifact
 was produced by the key holder and hasn't changed.
+
+The sample bundle in `fixtures/demo-proof.json` exists to exercise the verifier. Its answer
+text is sample content, not a factual claim: verifying it shows that the bundle is unchanged
+and signed by a pinned key, not that the text is true.
 
 ## CLI
 
